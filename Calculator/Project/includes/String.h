@@ -14,6 +14,8 @@ void String_delete(String *str);
 
 bool String_push(String *str, char c);
 
+void String_clear(String str);
+
 typedef struct {
     size_t size;
     const char *str_ptr;
