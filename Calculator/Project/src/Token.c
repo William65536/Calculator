@@ -7,15 +7,6 @@
 #define TOKEN_LIST_DEFAULT_INIT_CAP 10
 #define TOKEN_LIST_RESIZE_MULTIPLIER 2
 
-typedef struct {
-    TokenType type;
-    union {
-        double number;
-        double (*operator)(double, double);
-    };
-    size_t col;
-} Token;
-
 struct TokenList {
     size_t size, cap;
     Token tokens[];
@@ -24,6 +15,7 @@ struct TokenList {
 TokenList *TokenList_new(size_t initcap)
 {
     TokenList *ret = malloc(sizeof *ret + max(initcap, TOKEN_LIST_DEFAULT_INIT_CAP) * sizeof *ret->tokens);
+
     if (ret == NULL)
         return NULL;
 
@@ -46,11 +38,12 @@ static bool TokenList_resize(TokenList **list)
     assert(list != NULL && *list != NULL);
 
     TokenList *temp = realloc(*list, sizeof **list + (*list)->cap * TOKEN_LIST_RESIZE_MULTIPLIER * sizeof *(*list)->tokens);
+
     if (temp == NULL)
         return false;
 
     *list = temp;
-    (*list)->cap *= 2;
+    (*list)->cap *= TOKEN_LIST_RESIZE_MULTIPLIER;
 
     return true;
 }
@@ -69,4 +62,9 @@ bool TokenList_push(TokenList **list, Token token)
     return true;
 }
 
+void TokenList_clear(TokenList *list)
+{
+    assert(list != NULL);
 
+    list->size = 0;
+}
