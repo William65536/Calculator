@@ -16,6 +16,7 @@ typedef struct {
 String String_new(size_t initcap)
 {
     InternalString *ret = malloc(sizeof *ret + (max(initcap, STRING_DEFAULT_INIT_CAP) + 1) * sizeof *ret->buf);
+
     if (ret == NULL)
         return NULL;
 
@@ -37,19 +38,21 @@ void String_delete(String *str)
     *str = NULL;
 }
 
-static bool String_resize(String str) // Update this to make it better; `str` should be changed to point to valid memory
+static bool String_resize(String *str)
 {
-    assert(str != NULL);
+    assert(str != NULL && *str != NULL);
 
-    InternalString *internal_str = String_to_InternalString(str);
+    InternalString *internal_str = String_to_InternalString(*str);
     assert(internal_str != NULL);
 
     InternalString *temp = realloc(internal_str, sizeof *internal_str + (internal_str->cap * STRING_RESIZE_MULTIPLIER + 1) * sizeof *internal_str->buf);
+
     if (temp == NULL)
         return false;
 
-    internal_str = temp;
-    internal_str->cap *= STRING_RESIZE_MULTIPLIER;
+    temp->cap *= STRING_RESIZE_MULTIPLIER;
+
+    *str = temp->buf;
 
     return true;
 }
@@ -63,14 +66,25 @@ bool String_push(String *str, char c)
     assert(internal_str != NULL);
 
     if (internal_str->size + 1 > internal_str->cap)
-        if (!String_resize(*str))
+        if (!String_resize(str))
             return false;
 
+    internal_str = String_to_InternalString(*str);
     internal_str->buf[internal_str->size] = c;
     internal_str->buf[internal_str->size + 1] = '\0';
     internal_str->size++;
 
-    *str = internal_str->buf;
-
     return true;
+}
+
+void String_clear(String str)
+{
+    assert(str != NULL);
+
+    InternalString *internal_str = String_to_InternalString(str);
+    assert(internal_str != NULL);
+
+    internal_str->size = 0;
+
+    str[0] = '\0';
 }
