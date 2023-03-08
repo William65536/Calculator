@@ -35,6 +35,9 @@ Lexer *Lexer_new(void)
         return NULL;
     }
 
+    ret->prevtype = TOKEN_TYPE_NONE;
+    ret->rest = ret->input;
+
     return ret;
 }
 
